@@ -5,7 +5,7 @@ import Races from './components/Races';
 
 const App = () => {
   const years = Array.from({ length: 6 }, (_, i) => 2020 + i);
-  const [selectedYear, setSelectedYear] = useState(years[3]); // Default to first year
+  const [selectedYear, setSelectedYear] = useState(years[4]); // Default to first year
 
   return (
     <div className='mt-4 flex flex-col items-center h-full mb-4'>

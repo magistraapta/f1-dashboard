@@ -25,8 +25,10 @@ const TeamStandings = ({ year }) => {
         }
     }, [year]);
 
+    if (loading) return <p>Fetching Data...</p>;
+    if (error) return <p>Error: {error}</p>;
   return (
-    <div className="p-4 rounded-xl border border-gray-200 min-w-[600px]">
+    <div className="p-4 rounded-xl border border-gray-300 hover:shadow-lg min-w-[600px]">
         <div className='flex justify-between items-center'>
             <h1 className='text-4xl font-semibold'>Team Standings</h1>
             <p className='text-red-500 underline'>See all</p>
@@ -34,7 +36,7 @@ const TeamStandings = ({ year }) => {
         {teamsStandings.length > 0 ? (
             <div>
             {teamsStandings.map((item) => (
-                <div className='mt-3'>
+                <div className='mt-3' key={item.position}>
                     <TeamStandingsRow
                     position={item.position}
                     team={item.Constructor.name}

@@ -13,7 +13,6 @@ const DriverStandings = ({ year }) => {
                         throw new Error("Failed to fetch data");
                     }
                     const data = await response.json()
-                    console.log(data[0].DriverStandings)
                     setDriverStandings(Array.isArray(data[0].DriverStandings) ? data[0].DriverStandings.slice(0, 5) : []);
                 } catch (error) {
                     setError(error)
@@ -26,8 +25,10 @@ const DriverStandings = ({ year }) => {
             }
         }, [year]);
 
+    if (loading) return <p>Fetching Data...</p>;
+    if (error) return <p>Error: {error}</p>;
     return (
-        <div className="p-4 rounded-xl border border-gray-200 min-w-[600px]">
+        <div className="p-4 rounded-xl border  border-gray-300 hover:shadow-lg min-w-[600px]">
             <div className='flex justify-between items-center'>
                 <h1 className='text-4xl font-semibold'>Driver Standings</h1>
                 <p className='text-red-500 underline'>See all</p>

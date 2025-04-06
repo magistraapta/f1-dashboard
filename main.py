@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,6 +9,14 @@ import pandas as pd
 import fastf1
 from fastf1.ergast import Ergast
 import os
+
+import math
+
+def safe_float(val):
+    if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
+        return None  # or use a default like 0
+    return val
+
 
 
 app = FastAPI()
@@ -120,24 +129,32 @@ def get_races(year: int):
 
 # show race result
 @app.get("/api/races/{year}/{race_number}")
-async def get_race_results(year: int, race_number: int):
+async def get_race_detail(year: int, race_number: int):
     try:
         session = fastf1.get_session(year, race_number, 'R')
         session.load(telemetry=False, weather=False)
+        
+        # get race detail
+        race = fastf1.get_event(year,race_number)
+        event_name = race["EventName"]
         
         # Use session.results which is a DataFrame
         race_results = []
         for _, driver in session.results.iterrows():
             race_results.append({
                 "fullName": driver["FullName"],
+                "driver_number": driver["DriverNumber"],
                 "team": driver["TeamName"],
                 "position": driver["Position"],
                 "gridPosition": driver["GridPosition"],
                 "time": str(driver["Time"]) if not pd.isna(driver["Time"]) else None,
-                "points": driver["Points"]
+                "points": driver["Points"],
+                "abbreviation": driver["Abbreviation"],
+                "status": driver["Status"]
             })
             
         return {
+            "event_name": event_name,
             "race_results": race_results
         }
     except Exception as e:
@@ -155,7 +172,7 @@ def get_driver_standings(year: int):
         raise HTTPException(status_code=500, detail=f"Error retrieving race results: {str(e)}")
     
 @app.get("/api/team-standings/{year}")
-def get_driver_standings(year: int):
+async def get_driver_standings(year: int):
     try:
         ergast = Ergast(result_type="raw")
         
@@ -164,7 +181,131 @@ def get_driver_standings(year: int):
         return team_standings
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving race results: {str(e)}")
+
+@app.get("/api/races/tire-strategy/{year}/{round}")
+async def get_tyre_strategy(year: int, round: int):
+    try:
+        # Load the race session
+        session = fastf1.get_session(year, round, 'R')
+        session.load()
         
+        # Create a dictionary to store tire strategies for all drivers
+        tire_strategies = {}
+        
+        # Get all drivers from the session
+        drivers = session.drivers
+        
+        for driver in drivers:
+            # Get driver info for display
+            driver_info = session.get_driver(driver)
+            driver_name = f"{driver_info['FirstName']} {driver_info['LastName']}"
+            
+            # Get all laps for the driver
+            driver_laps = session.laps.pick_driver(driver)
+            
+            # Group laps by stint number
+            stints = []
+            stint_numbers = driver_laps['Stint'].unique()
+            
+            for stint_number in sorted(stint_numbers):
+                stint_laps = driver_laps[driver_laps['Stint'] == stint_number]
+                
+                # Get the first lap of the stint to identify the compound
+                if len(stint_laps) > 0:
+                    first_lap = stint_laps.iloc[0]
+                    compound = first_lap['Compound']
+                    lap_start = first_lap['LapNumber']
+                    lap_end = stint_laps.iloc[-1]['LapNumber']
+                    lap_count = len(stint_laps)
+                    
+                    stints.append({
+                        "stint": int(stint_number),
+                        "compound": compound,
+                        "lap_start": int(lap_start),
+                        "lap_end": int(lap_end),
+                        "lap_count": int(lap_count)
+                    })
+            
+            # Add driver strategy to the result
+            tire_strategies[driver] = {
+                "driver_number": driver,
+                "driver_name": driver_name,
+                "team": driver_info['TeamName'],
+                "stints": stints
+            }
+        
+        return {
+            "event": f"{session.event['EventName']} {year}",
+            "strategies": tire_strategies
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching tire strategy data: {str(e)}")
+    
+# @app.get("/api/races/{year}/{round}/{driver}")
+# def get_driver_speed(year: int, round: int, driver: str):
+#     try:
+#         session = fastf1.get_session(year, round, "R")
+#         session.load(weather=False)
+#         driver_data = session.laps.pick_drivers(driver).pick_fastest()
+#         car_data = driver_data.get_car_data()
+#         time = car_data["Time"]
+#         speed = car_data["Speed"]
+        
+#         return {
+#             "time": time,
+#             "speed": speed
+#         }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error fetching tire strategy data: {str(e)}")
+
+@app.get("/api/races/{year}/{round}/{driver}")
+def get_driver_speed(year: int, round: int, driver: str):
+    try:
+        session = fastf1.get_session(year, round, "R")
+        session.load(weather=False)
+        driver_data = session.laps.pick_drivers(driver).pick_fastest()
+        car_data = driver_data.get_car_data()
+        
+        telemetry = []
+        for i in range(len(car_data["Time"])):
+            telemetry.append({
+                "time": car_data["Time"][i].total_seconds(),  # or use lap_distance if you want
+                "speed": car_data["Speed"][i]
+            })
+        
+        return JSONResponse(content=telemetry)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/race-positions/{year}/{round}")
+def get_race_positions(year: int, round: int):
+    try:
+        session = fastf1.get_session(year, round, "R")
+        session.load(weather=False)
+
+        laps = session.laps
+        drivers = session.drivers  # List of driver abbreviations
+
+        race_data = {}
+
+        for drv in drivers:
+            drv_laps = laps.pick_driver(drv)
+            drv_info = session.get_driver(drv)
+            abbrev = drv_info["Abbreviation"]
+
+            positions = []
+            for _, lap in drv_laps.iterlaps():
+                positions.append({
+                    "lap": safe_float(lap["LapNumber"]),
+                    "position": safe_float(lap["Position"])
+                })
+            race_data[abbrev] = positions
+
+        return JSONResponse(content=race_data)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

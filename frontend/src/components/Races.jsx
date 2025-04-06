@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router';
 
 const Races = ({year}) => {
     const [races, setRaces] = useState([])
@@ -32,7 +33,9 @@ const Races = ({year}) => {
         <div className="p-4 rounded-xl border border-gray-200 min-w-[1220px] mt-4">
             <div className='flex justify-between items-center'>
                 <h1 className='text-4xl font-semibold'>Races Result Season {year}</h1>
-                <p className='text-red-500 underline'>See all</p>
+                <p className='text-red-500 underline'>
+                    <Link to={"/races"}>See all</Link>
+                </p>
             </div>
             <div>
                 {races.map((item) => (
@@ -51,7 +54,7 @@ const Races = ({year}) => {
 
 const RacesRow = ({ event_name, location, date}) => {
     return (
-        <div className='flex items-center gap-x-4 border border-gray-300 rounded-xl p-4 pb-3'>
+        <div className='flex items-center gap-x-4 border  border-gray-300 hover:shadow-lg rounded-xl p-4 pb-3'>
             {/* Event Name */}
             
             {/* Event Details */}
