@@ -306,6 +306,79 @@ def get_race_positions(year: int, round: int):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/gear-shift/{year}/{round}/{driver}")
+async def get_gear_shift(year: int, round: int, driver: str):
+    try:
+        # Enable cache to improve performance
+        
+        # Get session - using race name instead of round number for better clarity
+        session = fastf1.get_session(year, round, 'R')
+        session.load(weather=False)
+        
+        # Get the driver's fastest lap
+        driver_laps = session.laps.pick_driver(driver)  # pick_driver not pick_drivers
+        
+        if driver_laps.empty:
+            raise HTTPException(status_code=404, detail=f"No data found for driver {driver}")
+            
+        fastest_lap = driver_laps.pick_fastest()
+        
+        # Get telemetry data
+        telemetry = fastest_lap.get_telemetry()
+        
+        # Convert to list format for JSON serialization
+        x_list = telemetry['X'].tolist()
+        y_list = telemetry['Y'].tolist()
+        gear_list = telemetry['nGear'].tolist()
+        
+        # Normalize track coordinates for visualization
+        # Calculate center and scale factor
+        x_mean = sum(x_list) / len(x_list)
+        y_mean = sum(y_list) / len(y_list)
+        
+        x_centered = [x - x_mean for x in x_list]
+        y_centered = [y - y_mean for y in y_list]
+        
+        max_dimension = max(max(abs(x) for x in x_centered), max(abs(y) for y in y_centered))
+        scale_factor = 100 / max_dimension if max_dimension > 0 else 1
+        
+        x_normalized = [x * scale_factor for x in x_centered]
+        y_normalized = [y * scale_factor for y in y_centered]
+        
+        # Build data points in the format needed for the chart
+        telemetry_data = []
+        for i in range(len(x_list)):
+            telemetry_data.append({
+                "x": x_normalized[i],
+                "y": y_normalized[i], 
+                "gear": gear_list[i]
+            })
+            
+        # Group data by gear for easier frontend processing
+        gear_groups = {}
+        for point in telemetry_data:
+            gear = point["gear"]
+            if gear not in gear_groups:
+                gear_groups[gear] = []
+            gear_groups[gear].append(point)
+        
+        return {
+            "driver_code": driver,
+            "driver_name": session.get_driver(driver)["FullName"],
+            "lap_number": fastest_lap["LapNumber"],
+            "lap_time": str(fastest_lap["LapTime"]),
+            "gear_distribution": {str(gear): len(points) for gear, points in gear_groups.items()},
+            "telemetry_data": telemetry_data,
+            "gear_groups": gear_groups
+        }
+        
+    except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

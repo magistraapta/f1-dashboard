@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
   } from "recharts";
+import GearShift from './GearShift';
 
 const Telemetry = ({year, round}) => {
     const [data, setData] = useState([]);
@@ -24,14 +25,6 @@ const Telemetry = ({year, round}) => {
             }
         }
 
-        const fetchPosition = async () => {
-            try {
-                
-            } catch (error) {
-                
-            }
-        }
-
         if (year) {
             fetchTelemetry()
         }
@@ -41,40 +34,41 @@ const Telemetry = ({year, round}) => {
 
   return (
     <div className='grid grid-cols-2 gap-x-4'>
-        <div className="w-full h-[400px] bg-gray-900 p-4 rounded-xl">
+        <div className='w-full bg-gray-900 p-4 rounded-xl'>
+            <GearShift/>
+        </div>
+        <div className="w-full  bg-gray-900 p-4 rounded-xl">
             <div>
-
-            </div>
-            <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis
-                    dataKey="time"
-                    tickFormatter={(v) => `${(v).toFixed(2)}s`}
-                    stroke="#ccc"
-                />
-                <YAxis
-                    domain={[65, 325]}
-                    tickFormatter={(v) => `${v} kph`}
-                    stroke="#ccc"
-                />
-                <Tooltip
-                    contentStyle={{ backgroundColor: "#ffffff", borderColor: "#333" }}
-                    labelFormatter={(label) => `Time: ${(label).toFixed(2)}s`}
-                    formatter={(value) => [`${value} kph`, "Speed"]}
-                />
-                <Line
-                    type="monotone"
-                    dataKey="speed"
-                    stroke="#4f83ff"
-                    strokeWidth={2}
-                    dot={false}
-                />
-                </LineChart>
-            </ResponsiveContainer>
-            </div>
-        <div>
-
+                </div>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart  data={data}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                        <XAxis
+                            dataKey="time"
+                            tickFormatter={(v) => `${(v).toFixed(2)}s`}
+                            stroke="#ccc"
+                        />
+                        <YAxis
+                            domain={[0, 325]}
+                            tickFormatter={(v) => `${v} kph`}
+                            stroke="#ccc"
+                        />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: "#ffffff", borderColor: "#333" }}
+                            labelFormatter={(label) => `Time: ${(label).toFixed(2)}s`}
+                            formatter={(value) => [`${value} kph`, "Speed"]}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="speed"
+                            stroke="#4f83ff"
+                            strokeWidth={2}
+                            dot={false}
+                        />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            <div>
         </div>
     </div>
   );
