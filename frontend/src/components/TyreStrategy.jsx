@@ -8,7 +8,6 @@ const COMPOUND_COLORS = {
   WET: '#2b65ec',
 };
 
-const TOTAL_LAPS = 58; // Replace with dynamic value if needed
 
 export default function TyreStrategy({ year, round }) {
   const [data, setData] = useState(null);
@@ -39,9 +38,9 @@ export default function TyreStrategy({ year, round }) {
   );
 
   return (
-    <div className="p-4 bg-black text-white rounded-2xl mb-6">
+    <div className="p-6 bg-black text-white rounded-2xl mb-6">
         
-      <h2 className="text-xl font-bold mb-4">{data.event} Tire Strategy</h2>
+      <h2 className="text-3xl font-bold mb-4">{data.event} Tire Strategy</h2>
       <div className="flex gap-4 my-6 text-xs">
         {Object.entries(COMPOUND_COLORS).map(([compound, color]) => (
           <div key={compound} className="flex items-center gap-1">
@@ -52,8 +51,8 @@ export default function TyreStrategy({ year, round }) {
       </div>
       {sortedDrivers.map((driver, i) => {
         const driverLastLap = driver.stints[driver.stints.length - 1]?.lap_end || 0;
-        const didNotFinish = driverLastLap < TOTAL_LAPS;
-        const remainingLaps = TOTAL_LAPS - driverLastLap;
+        const didNotFinish = driverLastLap < data.total_laps;
+        const remainingLaps = data.total_laps - driverLastLap;
 
         return (
             <div key={i} className="flex items-center gap-x-6 mb-2">
@@ -77,7 +76,7 @@ export default function TyreStrategy({ year, round }) {
                 {didNotFinish && (
                 <div
                     style={{
-                    width: `${(remainingLaps / TOTAL_LAPS) * 100}%`,
+                    width: `${(remainingLaps / data.total_laps) * 100}%`,
                     backgroundColor: '#999',
                     opacity: 0.4,
                     }}
@@ -88,9 +87,6 @@ export default function TyreStrategy({ year, round }) {
             </div>
         );
         })}
-
-
-
     </div>
   );
 }
