@@ -5,6 +5,7 @@ import {
 
 import GearShift from './GearShift';
 import SpeedTelemetry from './SpeedTelemetry';
+import CompareSpeed from './CompareSpeed';
 
 const Telemetry = ({year, round}) => {
     const [data, setData] = useState([])
@@ -36,14 +37,19 @@ const Telemetry = ({year, round}) => {
     const driver = ["HAM", "VER", "LEC"]
 
   return (
-    <div className='space-x-4 flex'>
-        <div className='w-full bg-gray-100 border border-gray-300 p-4 rounded-xl '>
-            <GearShift year={year} round={round}/>
+    <div className=' grid gap-y-6'>
+        <div className='space-x-4 flex'>
+            <div className='w-full border border-gray-300 p-4 rounded-xl shadow-md'>
+                <GearShift year={year} round={round}/>
+            </div>
+            <div className="w-full  border  border-gray-300 p-4 rounded-xl shadow-md">
+                <SpeedTelemetry year={year} round={round}/>
+            </div>
         </div>
-        <div className="w-full bg-gray-100 border  border-gray-300 p-4 rounded-xl">
-            <SpeedTelemetry year={year} round={round}/>
-        </div>
+
+        <CompareSpeed year={year} round={round}/>
     </div>
+    
   );
 }
 

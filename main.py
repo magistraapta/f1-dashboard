@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi import FastAPI, Request, Form, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,10 +17,7 @@ def safe_float(val):
         return None  # or use a default like 0
     return val
 
-
-
 app = FastAPI()
-templates = Jinja2Templates(directory="views")
 
 app.add_middleware(
     CORSMiddleware,
@@ -194,6 +191,7 @@ async def get_tyre_strategy(year: int, round: int):
         
         # Get all drivers from the session
         drivers = session.drivers
+        total_laps = session.laps["LapNumber"].max()
         
         for driver in drivers:
             # Get driver info for display
@@ -236,28 +234,12 @@ async def get_tyre_strategy(year: int, round: int):
         
         return {
             "event": f"{session.event['EventName']} {year}",
+            "total_laps": total_laps,
             "strategies": tire_strategies
         }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching tire strategy data: {str(e)}")
-    
-# @app.get("/api/races/{year}/{round}/{driver}")
-# def get_driver_speed(year: int, round: int, driver: str):
-#     try:
-#         session = fastf1.get_session(year, round, "R")
-#         session.load(weather=False)
-#         driver_data = session.laps.pick_drivers(driver).pick_fastest()
-#         car_data = driver_data.get_car_data()
-#         time = car_data["Time"]
-#         speed = car_data["Speed"]
-        
-#         return {
-#             "time": time,
-#             "speed": speed
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error fetching tire strategy data: {str(e)}")
 
 @app.get("/api/races/{year}/{round}/{driver}")
 def get_driver_speed(year: int, round: int, driver: str):
@@ -274,7 +256,10 @@ def get_driver_speed(year: int, round: int, driver: str):
                 "speed": car_data["Speed"][i]
             })
         
-        return JSONResponse(content=telemetry)
+        return {
+            "driverName": session.get_driver(driver)["FullName"],
+            "data": telemetry
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -380,6 +365,44 @@ async def get_gear_shift(year: int, round: int, driver: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-
+@app.get("/api/compare-speed")
+async def compare_driver_speed(
+    year: int = Query(..., description="Season year, e.g., 2024"),
+    round: int = Query(..., description="Round number, e.g., 5"),
+    driver1: str = Query(..., description="Driver abbreviation, e.g., VER"),
+    driver2: str = Query(..., description="Another driver abbreviation, e.g., LEC")
+    
+):
+    
+    try:
+        
+        session = fastf1.get_session(year, round, "R")
+        session.load()
+        
+        driver_lap1 = session.laps.pick_drivers(driver1.upper()).pick_fastest()
+        driver_lap2 = session.laps.pick_drivers(driver2.upper()).pick_fastest()
+        
+        tel_1 = driver_lap1.get_car_data().add_distance()
+        tel_2 = driver_lap2.get_car_data().add_distance()
+        
+        
+        telemetry = {
+                "driver1": {
+                    "name": driver1.upper(),
+                    "data": [
+                        {"distance": float(d), "speed": float(s)}
+                        for d, s in zip(tel_1["Distance"], tel_1["Speed"])
+                    ]
+                },
+                "driver2": {
+                    "name": driver2.upper(),
+                    "data": [
+                        {"distance": float(d), "speed": float(s)}
+                        for d, s in zip(tel_2["Distance"], tel_2["Speed"])
+                    ]
+                }
+            }
+        return JSONResponse(content=telemetry)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={f"error: {e}"})
 
