@@ -61,13 +61,17 @@ const GearShift = ({year, round}) => {
 
     return (
         <div className=" space-y-6">
-            {data.driver_name ? <h1 className='text-2xl font-bold'>{data.driver_name}'s Gear Shift Distribution</h1> : <h1></h1>}
+            {data.driver_name ? <h1 className='text-2xl font-bold'>{data.driver_name}'s Gear Shift Distribution</h1> : <h1>Loading data...</h1>}
            
             <div className="flex flex-wrap gap-4 mb-4">
             {allGears.map(gear => (
-                <div key={gear} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: gearColors[gear] || '#000' }}></div>
-                <span>Gear {gear}</span>
+                <div key={gear} className="grid grid-cols-2">
+                  <div className='flex items-center gap-2'>
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: gearColors[gear] || '#000' }}></div>
+                    <p>Gear {gear}</p>
+                  </div>
+                  
+                  
                 </div>
             ))}
             </div>
