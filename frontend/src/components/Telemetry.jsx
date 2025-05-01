@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
-    LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
+    LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend
   } from "recharts";
+
 import GearShift from './GearShift';
+import SpeedTelemetry from './SpeedTelemetry';
 
 const Telemetry = ({year, round}) => {
-    const [data, setData] = useState([]);
-    const [error, setError] = useState(null);
+    const [data, setData] = useState([])
+     const [error, setError] = useState(null)
 
     useEffect(() => {
         const fetchTelemetry = async () => {
@@ -31,44 +33,15 @@ const Telemetry = ({year, round}) => {
 
     }, [year, round]);
 
+    const driver = ["HAM", "VER", "LEC"]
 
   return (
-    <div className='grid grid-cols-2 gap-x-4'>
-        <div className='w-full bg-gray-900 p-4 rounded-xl'>
-            <GearShift/>
+    <div className='space-x-4 flex'>
+        <div className='w-full bg-gray-100 border border-gray-300 p-4 rounded-xl '>
+            <GearShift year={year} round={round}/>
         </div>
-        <div className="w-full  bg-gray-900 p-4 rounded-xl">
-            <div>
-                </div>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart  data={data}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                        <XAxis
-                            dataKey="time"
-                            tickFormatter={(v) => `${(v).toFixed(2)}s`}
-                            stroke="#ccc"
-                        />
-                        <YAxis
-                            domain={[0, 325]}
-                            tickFormatter={(v) => `${v} kph`}
-                            stroke="#ccc"
-                        />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: "#ffffff", borderColor: "#333" }}
-                            labelFormatter={(label) => `Time: ${(label).toFixed(2)}s`}
-                            formatter={(value) => [`${value} kph`, "Speed"]}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="speed"
-                            stroke="#4f83ff"
-                            strokeWidth={2}
-                            dot={false}
-                        />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            <div>
+        <div className="w-full bg-gray-100 border  border-gray-300 p-4 rounded-xl">
+            <SpeedTelemetry year={year} round={round}/>
         </div>
     </div>
   );
