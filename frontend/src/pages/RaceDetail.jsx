@@ -97,8 +97,8 @@ const RaceResultTable = ({ results }) => {
     return (
         <div className="overflow-x-auto rounded-lg border border-gray-300">
             <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-950">
-                    <tr className='text-center text-gray-200'>
+                <thead className="">
+                    <tr className='text-center'>
                         <th className="px-4 py-2 text-sm font-semibold ">Position</th>
                         <th className="px-4 py-2 text-sm font-semibold ">Driver</th>
                         <th className="px-4 py-2 text-sm font-semibold ">Team</th>
@@ -106,7 +106,7 @@ const RaceResultTable = ({ results }) => {
                         <th className="px-4 py-2 text-sm font-semibold ">Status</th>
                     </tr>
                 </thead>
-                <tbody className="bg-gray-900 text-gray-300 divide-y divide-gray-700">
+                <tbody className=" text-black divide-y divide-gray-300">
                     {results.map((result, index) => (
                         <tr key={index} className='text-center'>
                             <td className="px-4 py-2">{result.position}</td>
