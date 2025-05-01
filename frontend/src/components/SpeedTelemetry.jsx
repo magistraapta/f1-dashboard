@@ -33,7 +33,8 @@ const SpeedTelemetry = ({year, round}) => {
 
   return (
     <div>
-        <h1 className='font-bold text-2xl mb-4'>{telemetry.driverName}'s speed telemetry</h1>
+        {telemetry.driverName ? <h1 className='font-bold text-2xl mb-4'>{telemetry.driverName}'s speed telemetry</h1> : <h1>Loading data...</h1>}
+        
         <div style={{height: "400px"}}>
             <ResponsiveContainer width="100%" height={400}>
                 <LineChart  data={telemetry.data}
@@ -61,7 +62,7 @@ const SpeedTelemetry = ({year, round}) => {
                 <Line
                     type="monotone"
                     dataKey="speed"
-                    stroke="#4f83ff"
+                    stroke="#ff0000"
                     strokeWidth={2}
                     dot={false}
                 />
