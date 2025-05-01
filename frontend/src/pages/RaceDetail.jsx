@@ -35,10 +35,20 @@ const RaceDetail = () => {
         fetchRaceDetail();
     }, [year, round]);
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
+    if (loading) {
+        return <div className="flex justify-center items-center h-64">Loading race data...</div>;
+      }
+    
+      if (error && !raceData) {
+        return (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+            <h3 className="font-bold">Error loading race data</h3>
+            <p>{error}</p>
+          </div>
+        );
+      }
     return (
-        <div className='w-full flex justify-center mt-6'>
+        <div className='w-full flex justify-center my-6'>
             <div className='w-11/12'>
                 <div className='flex gap-x-6 items-center mb-6'>
                     <p className=' underline text-red-500'>
