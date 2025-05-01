@@ -15,7 +15,7 @@ import {
   } from "recharts";
 
 
-const GearShift = () => {
+const GearShift = ({year, round}) => {
     const [data, setData] = useState({});
     const gearColors = {
         1: '#cfe2f3', // Light blue
@@ -35,7 +35,7 @@ const GearShift = () => {
     useEffect(() => {
         const fetchGearData = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/api/gear-shift/2024/1/LEC`)
+                const response = await fetch(`http://localhost:8000/api/gear-shift/${year}/${round}/VER`)
                 if (!response.ok) {
                     throw new Error("Failed to fetch gear data")
                 }
@@ -46,8 +46,11 @@ const GearShift = () => {
             }
         }
 
-        fetchGearData()
-    }, []);
+        if (year) {
+          fetchGearData()
+        }
+        
+    }, [year, round]);
 
     const telemetryByGear = data.telemetry_data?.reduce((acc, point) => {
         const gear = point.gear;
@@ -57,8 +60,8 @@ const GearShift = () => {
     }, {}) || {};
 
     return (
-        <div className="p-6 space-y-10 text-white">
-            {data.driver_name ? <h1 className='text-xl'>{data.driver_name}'s Gear Shift Distribution</h1> : <h1></h1>}
+        <div className=" space-y-6">
+            {data.driver_name ? <h1 className='text-2xl font-bold'>{data.driver_name}'s Gear Shift Distribution</h1> : <h1></h1>}
            
             <div className="flex flex-wrap gap-4 mb-4">
             {allGears.map(gear => (
