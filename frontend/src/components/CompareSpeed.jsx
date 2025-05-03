@@ -108,7 +108,7 @@ const CompareSpeed = ({year, round}) => {
               stroke="#4f83ff"
               dot={false}
               name={telemetry.driver1.name}
-              strokeWidth={2}
+              strokeWidth={4}
             />
             <Line
               data={telemetry.driver2.data}
@@ -117,7 +117,7 @@ const CompareSpeed = ({year, round}) => {
               stroke="#f87171"
               dot={false}
               name={telemetry.driver2.name}
-              strokeWidth={2}
+              strokeWidth={4}
             />
             <Legend/>
           </LineChart >
