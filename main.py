@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Form, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -120,7 +120,7 @@ def get_races(year: int):
             
             if race_date < current_date:
                 race_status = "Finished"
-            elif race_date == current_date:
+            elif race_date <= current_date + timedelta(days=3):
                 race_status = "Race Day"
             else:
                 race_status = "Upcoming"
