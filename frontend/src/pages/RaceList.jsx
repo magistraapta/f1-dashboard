@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 
 const RaceList = () => {
     const years = Array.from({ length: 6 }, (_, i) => 2020 + i);
-    const [selectedYear, setSelectedYear] = useState(years[4]);
+    const [selectedYear, setSelectedYear] = useState(years[5]);
     const [races, setRaces] = useState([])
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ const RaceList = () => {
             </Link>
         </p>
             <div className='flex justify-between items-center'>
-                <h1 className='text-4xl font-semibold'>Races & Result Season 2024</h1>
+                <h1 className='text-4xl font-semibold'>Races & Result Season {selectedYear}</h1>
                 <select 
                     className="mb-4 p-2 border border-gray-600 rounded-lg"
                     value={selectedYear}
@@ -65,6 +65,7 @@ const RaceList = () => {
                                 event_name={item.event_name} 
                                 location={item.location}
                                 date={item.date}
+                                race_status={item.race_status}
                             />
                         </Link>
                         
@@ -77,9 +78,23 @@ const RaceList = () => {
   )
 }
 
-const RacesRow = ({ event_name, location, date}) => {
-    
+const RacesRow = ({ event_name, location, date, race_status}) => {
+    const raceStatus = ["Finished", "Upcoming", "Race Day",]
 
+    const getStatusBgColor = (status) => {
+        switch (status) {
+            case "Finished":
+                return "bg-green-600";
+            case "Race Day":
+                return "bg-purple-600";
+            case "Upcoming":
+                return "bg-yellow-500";
+            default:
+                return "bg-gray-400";
+        }
+    };
+
+    const bgColor = getStatusBgColor(race_status);
 
     return (
         <div className='flex items-center gap-x-4 border  border-gray-300 hover:shadow-lg rounded-xl p-4 pb-3'>
@@ -88,8 +103,14 @@ const RacesRow = ({ event_name, location, date}) => {
             {/* Event Details */}
             <div className='flex justify-between w-full items-center'>
                 {/* Location & Date */}
-
-                <h1 className='text-2xl font-bold'>{event_name}</h1>
+                <div>
+                    <h1 className='text-2xl font-bold'>{event_name}</h1>
+                    <div className='text-center mt-3 w-[100px]'>
+                        <p className={` rounded-md text-white ${bgColor}`}>
+                                {race_status}
+                        </p>
+                    </div>
+                </div>
 
                 <div className='text-right'>
                     <p className='text-xl font-semibold'>{location}</p>
