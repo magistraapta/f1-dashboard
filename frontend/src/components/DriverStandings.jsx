@@ -53,7 +53,7 @@ const DriverStandingsRow = ({ name, position, points, isFirst }) => {
     return (
         <div className='flex items-center gap-x-4 justify-between'>
             <div className={`flex gap-x-3 ${isFirst ? "text-yellow-500" : "text-black"}`}>
-                <p className='text-3xl font-bold'>#{position}</p>
+                <p className='text-3xl font-bold'>{position}</p>
                 
                 <h3 className='text-3xl font-bold'>{name}</h3>
             </div>

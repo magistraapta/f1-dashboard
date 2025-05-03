@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Shimmer from './Shimmer';
 
 const TeamStandings = ({ year }) => {
     const [teamsStandings, setTeamStandings] = useState([])
@@ -25,7 +26,10 @@ const TeamStandings = ({ year }) => {
         }
     }, [year]);
 
-    if (loading) return <p>Fetching Data...</p>;
+    if (loading) {
+        return <Shimmer/>
+    };
+    
     if (error) return <p>Error: {error}</p>;
   return (
     <div className="p-4 rounded-xl border border-gray-300 hover:shadow-lg min-w-[600px]">
@@ -48,9 +52,6 @@ const TeamStandings = ({ year }) => {
         ): (
             <p>No team standings data available</p>
         )}
-
-        
-        
     </div>
   )
 }
@@ -59,7 +60,7 @@ const TeamStandingsRow = ({ position, team, points, isFirst}) => {
     return (
         <div className='flex items-center gap-x-4'>
             {/* Round Number */}
-            <h1 className='text-3xl font-bold'>#{position}</h1>
+            <h1 className={`text-3xl font-bold ${isFirst ? "text-yellow-500" : "text-black"}`}>{position}</h1>
             
             {/* Circuit & Winner Info Container */}
             <div className='flex justify-between w-full'>
