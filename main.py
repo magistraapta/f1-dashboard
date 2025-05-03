@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Form, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -110,9 +111,23 @@ def get_races(year: int):
     try:
         schedule = fastf1.get_event_schedule(year)
         races = []
+        current_date = datetime.utcnow().date()
+        
         
         for index, event in schedule.iterrows():
+            
+            race_date = event["EventDate"].date()
+            
+            if race_date < current_date:
+                race_status = "Finished"
+            elif race_date == current_date:
+                race_status = "Race Day"
+            else:
+                race_status = "Upcoming"
+                
+                
             races.append({
+                "race_status": race_status,
                 "round": event['RoundNumber'],
                 "name": event['EventName'],
                 "date": event['EventDate'].strftime('%Y-%m-%d'),
@@ -373,7 +388,6 @@ async def compare_driver_speed(
     driver2: str = Query(..., description="Another driver abbreviation, e.g., LEC")
     
 ):
-    
     try:
         
         session = fastf1.get_session(year, round, "R")
