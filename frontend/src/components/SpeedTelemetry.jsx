@@ -43,16 +43,16 @@ const SpeedTelemetry = ({year, round}) => {
                     left: 10
                 }}
                 >
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#000" />
                 <XAxis
                     dataKey="time"
                     tickFormatter={(v) => `${(v).toFixed(2)}s`}
-                    stroke="#ccc"
+                    stroke="#000"
                 />
                 <YAxis
                     domain={[0, 325]}
                     tickFormatter={(v) => `${v} kph`}
-                    stroke="#ccc"
+                    stroke="#000"
                 />
                 <Tooltip
                     contentStyle={{ backgroundColor: "#ffffff", borderColor: "#333" }}

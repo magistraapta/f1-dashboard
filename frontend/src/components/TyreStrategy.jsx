@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Shimmer from './Shimmer';
 
 const COMPOUND_COLORS = {
   SOFT: '#ea4c4c',
@@ -30,7 +31,10 @@ export default function TyreStrategy({ year, round }) {
     fetchData();
   }, [year, round]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <Shimmer/>
+  }
+
   if (!data) return <p>No data available.</p>;
 
   const sortedDrivers = Object.values(data.strategies).sort((a, b) =>
@@ -38,7 +42,7 @@ export default function TyreStrategy({ year, round }) {
   );
 
   return (
-    <div className="p-6 bg-black text-white rounded-2xl mb-6">
+    <div className="p-6 bg-black text-white rounded-2xl shadow-md mb-6">
         
       <h2 className="text-3xl font-bold mb-4">{data.event} Tire Strategy</h2>
       <div className="flex gap-4 my-6 text-xs">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import driverColors from '../utils/driverColor';
+import Shimmer from './Shimmer';
 
 const RacePositionChart = ({ year, round }) => {
   const [raceData, setRaceData] = useState(null);
@@ -103,7 +104,7 @@ const RacePositionChart = ({ year, round }) => {
 
   // Handle loading and error states
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading race data...</div>;
+    return <Shimmer/>
   }
 
   if (error && !raceData) {
@@ -143,7 +144,7 @@ const RacePositionChart = ({ year, round }) => {
   maxPosition = Math.min(Math.max(maxPosition + 1, 10), 20);
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg shadow-lg">
+    <div className="p-4 bg-white rounded-lg shadow-md">
       
       {error && (
         <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-2 text-sm">

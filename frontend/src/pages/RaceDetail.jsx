@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 import TireStrategy from '../components/TyreStrategy';
 import Telemetry from '../components/Telemetry';
 import RacePositions from '../components/RacePositions';
+import Shimmer from '../components/Shimmer';
 
 const RaceDetail = () => {
     const {year, round} = useParams()
@@ -36,7 +37,7 @@ const RaceDetail = () => {
     }, [year, round]);
 
     if (loading) {
-        return <div className="flex justify-center items-center h-64">Loading race data...</div>;
+        return <Shimmer/>
       }
     
       if (error && !raceData) {
@@ -69,10 +70,10 @@ const RaceDetail = () => {
                         {tabs.map((tab) => (
                             <button
                             key={tab}
-                            className={`px-4 py-2 rounded-full border transition ${
+                            className={`px-4 py-2 rounded-full border border-gray-300 transition ${
                                 selectedTab === tab
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                ? "bg-red-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                             onClick={() => setSelectedTab(tab)}
                             >
@@ -95,7 +96,7 @@ const RaceDetail = () => {
 const RaceResultTable = ({ results }) => {
 
     return (
-        <div className="overflow-x-auto rounded-lg border border-gray-300">
+        <div className="overflow-x-auto rounded-lg border border-gray-300 shadow-md">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="">
                     <tr className='text-center'>
