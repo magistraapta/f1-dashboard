@@ -36,7 +36,7 @@ const RaceList = () => {
     if (error) return <p>Error: {error}</p>;
   return (
     <div className='w-full flex justify-center'>
-        <div className="p-4 rounded-xl border border-gray-200 w-10/12 mt-4">
+        <div className="p-4 rounded-xl border border-gray-200 w-10/12 mt-4 shadow-lg">
         <p className='underline text-red-500'>
             <Link to={"/"}>
                 Back 
