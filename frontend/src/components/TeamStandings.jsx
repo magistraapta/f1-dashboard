@@ -32,7 +32,7 @@ const TeamStandings = ({ year }) => {
     
     if (error) return <p>Error: {error}</p>;
   return (
-    <div className="p-4 rounded-xl border border-gray-300 hover:shadow-lg min-w-[600px]">
+    <div className="p-4 rounded-xl border border-gray-300 shadow-lg min-w-[600px] bg-white">
         <div className='flex justify-between items-center'>
             <h1 className='text-4xl font-semibold'>Team Standings</h1>
             <p className='text-red-500 underline'>See all</p>

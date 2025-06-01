@@ -28,7 +28,7 @@ const DriverStandings = ({ year }) => {
     if (loading) return <p>Fetching Data...</p>;
     if (error) return <p>Error: {error}</p>;
     return (
-        <div className="p-4 rounded-xl border  border-gray-300 hover:shadow-lg min-w-[600px]">
+        <div className="p-4 rounded-xl border  border-gray-300 bg-white shadow-lg min-w-[600px]">
             <div className='flex justify-between items-center'>
                 <h1 className='text-4xl font-semibold'>Driver Standings</h1>
                 <p className='text-red-500 underline'>See all</p>

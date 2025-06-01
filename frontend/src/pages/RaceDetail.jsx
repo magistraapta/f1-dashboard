@@ -12,8 +12,16 @@ const RaceDetail = () => {
     const [eventName, setEventName] = useState(""); // ← NEW STATE
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedTab, setSelectedTab] = useState("results");
+    const [selectedTab, setSelectedTab] = useState(() => {
+        // Get the stored tab from localStorage, default to "results" if none exists
+        return localStorage.getItem(`raceTab-${year}-${round}`) || "results";
+    });
     const tabs = ["results", "positions", "strategy", "telemetry"];
+
+    // Update localStorage when selectedTab changes
+    useEffect(() => {
+        localStorage.setItem(`raceTab-${year}-${round}`, selectedTab);
+    }, [selectedTab, year, round]);
 
     useEffect(() => {
         const fetchRaceDetail = async () => {
@@ -49,8 +57,8 @@ const RaceDetail = () => {
         );
       }
     return (
-        <div className='w-full flex justify-center my-6'>
-            <div className='w-11/12'>
+        <div className='flex justify-center my-6'>
+            <div className='w-full'>
                 <div className='flex gap-x-6 items-center mb-6'>
                     <p className=' underline text-red-500'>
                         <Link to={"/races"}>

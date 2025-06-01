@@ -2,16 +2,17 @@ import React, {useState} from 'react'
 import TeamStandings from './components/TeamStandings';
 import DriverStandings from './components/DriverStandings';
 import Races from './components/Races';
-import './styles/animation.css'
+import './App.css';
 
 const App = () => {
   const years = Array.from({ length: 6 }, (_, i) => 2020 + i);
   const [selectedYear, setSelectedYear] = useState(years[5]); // Default to first year
 
   return (
-    <div className='mt-4 flex flex-col items-center h-full mb-4'>
-      <div className='flex p-8 w-11/12 justify-between'>
-        <div>
+    <div className='flex flex-col items-center h-full mb-4 relative'>
+      <div className='animated-line'></div>
+      <div className='flex pb-4 w-11/12 justify-between'>
+        <div className='text-left'>
           <h1 className='text-5xl font-bold mb-4'>Dashboard</h1>
           <p className='text-gray-400'>2025 Season Overview</p>
         </div>
