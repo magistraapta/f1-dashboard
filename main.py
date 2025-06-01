@@ -3,6 +3,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
+import json
+import redis
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -13,10 +16,38 @@ import os
 
 import math
 
+# Redis connection
+redis_client = redis.Redis(
+    host='localhost',  # Redis server host
+    port=6379,        # Redis server port
+    db=0,            # Redis database number
+    decode_responses=True  # Automatically decode responses to strings
+)
+
 def safe_float(val):
     if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
         return None  # or use a default like 0
     return val
+
+def get_cache_key(endpoint: str, **kwargs) -> str:
+    """Generate a cache key based on endpoint and parameters"""
+    params = '_'.join(f"{k}={v}" for k, v in sorted(kwargs.items()))
+    return f"f1:{endpoint}:{params}"
+
+def get_cached_data(cache_key: str) -> Optional[dict]:
+    """Get data from Redis cache"""
+    cached_data = redis_client.get(cache_key)
+    if cached_data:
+        return json.loads(cached_data)
+    return None
+
+def set_cached_data(cache_key: str, data: dict, expire_seconds: int = 3600) -> None:
+    """Store data in Redis cache with expiration"""
+    redis_client.setex(
+        cache_key,
+        expire_seconds,
+        json.dumps(data)
+    )
 
 app = FastAPI()
 
@@ -37,7 +68,15 @@ async def startup_cache():
 
 @app.get("/api/race-positons/{year}/{race_number}")
 async def race_positions(year: int, race_number: int, lap_interval: int = 1):
+    # Generate cache key
+    cache_key = get_cache_key('race_positions', year=year, race_number=race_number, lap_interval=lap_interval)
     
+    # Try to get from cache first
+    cached_data = get_cached_data(cache_key)
+    if cached_data:
+        return cached_data
+    
+    # If not in cache, fetch from FastF1
     session = fastf1.get_session(year, race_number, 'R')
     session.load(telemetry=False, weather=False)
     
@@ -48,7 +87,6 @@ async def race_positions(year: int, race_number: int, lap_interval: int = 1):
     target_laps = range(1, total_laps + 1, lap_interval)
     
     for lap_number in target_laps:
-        
         lap_data = session.laps.pick_lap(lap_number)
         
         if lap_data.empty:
@@ -91,6 +129,9 @@ async def race_positions(year: int, race_number: int, lap_interval: int = 1):
         "positionData": position_data
     }
     
+    # Cache the result for 1 hour
+    set_cached_data(cache_key, result, 3600)
+    
     return result
 
 # show list of race in season
@@ -109,13 +150,19 @@ def get_races(year: int):
         races: list of race in JSON
     """
     try:
+        # Generate cache key
+        cache_key = get_cache_key('races', year=year)
+        
+        # Try to get from cache first
+        cached_data = get_cached_data(cache_key)
+        if cached_data:
+            return cached_data
+            
         schedule = fastf1.get_event_schedule(year)
         races = []
         current_date = datetime.utcnow().date()
         
-        
         for index, event in schedule.iterrows():
-            
             race_date = event["EventDate"].date()
             
             if race_date < current_date:
@@ -124,7 +171,6 @@ def get_races(year: int):
                 race_status = "Race Day"
             else:
                 race_status = "Upcoming"
-                
                 
             races.append({
                 "race_status": race_status,
@@ -135,7 +181,13 @@ def get_races(year: int):
                 "location": event['Location'],
                 "event_name": event['EventName']
             })
-        return {"races": races}
+            
+        result = {"races": races}
+        
+        # Cache the result for 1 hour
+        set_cached_data(cache_key, result, 3600)
+        
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving race schedule: {str(e)}")
 
@@ -231,12 +283,16 @@ async def get_tyre_strategy(year: int, round: int):
                     lap_end = stint_laps.iloc[-1]['LapNumber']
                     lap_count = len(stint_laps)
                     
+                    # Get all lap numbers in this stint
+                    lap_numbers = stint_laps['LapNumber'].tolist()
+                    
                     stints.append({
                         "stint": int(stint_number),
                         "compound": compound,
                         "lap_start": int(lap_start),
                         "lap_end": int(lap_end),
-                        "lap_count": int(lap_count)
+                        "lap_count": int(lap_count),
+                        "lap_numbers": [int(lap) for lap in lap_numbers]  # Add lap numbers for this stint
                     })
             
             # Add driver strategy to the result
@@ -262,13 +318,31 @@ def get_driver_speed(year: int, round: int, driver: str):
         session = fastf1.get_session(year, round, "R")
         session.load(weather=False)
         driver_data = session.laps.pick_drivers(driver).pick_fastest()
-        car_data = driver_data.get_car_data()
+        car_data = driver_data.get_car_data().add_distance()
+        
+        # Calculate speed changes to identify turns
+        speeds = car_data["Speed"].values
+        distances = car_data["Distance"].values
+        turn_threshold = 20  # Speed change threshold to identify a turn
         
         telemetry = []
-        for i in range(len(car_data["Time"])):
+        current_turn = 1
+        in_turn = False
+        
+        for i in range(len(car_data["Distance"])):
+            # Check if we're entering a turn (significant speed reduction)
+            if i > 0 and not in_turn and speeds[i] < speeds[i-1] - turn_threshold:
+                in_turn = True
+                current_turn += 1
+            
+            # Check if we're exiting a turn (significant speed increase)
+            if i > 0 and in_turn and speeds[i] > speeds[i-1] + turn_threshold:
+                in_turn = False
+            
             telemetry.append({
-                "time": car_data["Time"][i].total_seconds(),  # or use lap_distance if you want
-                "speed": car_data["Speed"][i]
+                "distance": car_data["Distance"][i],
+                "speed": car_data["Speed"][i],
+                "turn": current_turn if in_turn else None
             })
         
         return {
